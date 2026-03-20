@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const WEBHOOK_URL = "https://SEU-N8N.com/webhook/diagnostico-formulario"
+const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK_URL || "https://n8n.vendasvno.com/webhook-test/bcd43c77-f1f8-426f-b263-c15486892231"
 
 // ═══════════════════════════════════════════════
 // Types
@@ -273,6 +273,7 @@ export default function DiagnosticoForm() {
   const [data, setData] = useState<Record<string, unknown>>({})
   const [done, setDone] = useState(false)
   const [sending, setSending] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState('')
 
   const set = useCallback((k: string, v: unknown) => setData(p => ({ ...p, [k]: v })), [])
   const toggle = useCallback((k: string, v: string) => {
@@ -295,17 +296,69 @@ export default function DiagnosticoForm() {
 
   const submit = async () => {
     setSending(true)
-    const payload = { ...data, submitted_at: new Date().toISOString() }
-    const clean: Record<string, unknown> = {}
-    Object.entries(payload).forEach(([k, v]) => {
-      if (v && typeof v === 'object' && 'base64' in (v as Record<string, unknown>)) {
-        clean[k] = { fileName: (v as UploadValue).fileName, uploaded: true }
+    const submissionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const imageUrls: Record<string, string | string[]> = {}
+
+    // Step 1: Upload all images to Supabase Storage
+    const imageFields = Object.entries(data).filter(
+      ([, v]) => (v && typeof v === 'object' && 'base64' in (v as Record<string, unknown>)) ||
+                  (Array.isArray(v) && v.length > 0 && v[0]?.base64)
+    )
+
+    if (imageFields.length > 0) {
+      setUploadProgress('Enviando prints...')
+      
+      for (const [fieldName, value] of imageFields) {
+        try {
+          if (Array.isArray(value)) {
+            // MultiUpload: upload each file
+            const urls: string[] = []
+            for (let i = 0; i < value.length; i++) {
+              const item = value[i] as MultiUploadItem
+              const blob = await fetch(item.base64).then(r => r.blob())
+              const formData = new FormData()
+              formData.append('files', blob, item.name)
+              formData.append('fieldName_0', `${fieldName}_${i}`)
+              formData.append('submissionId', submissionId)
+              const res = await fetch('/api/upload', { method: 'POST', body: formData })
+              const result = await res.json()
+              if (result.urls) urls.push(...Object.values(result.urls) as string[])
+            }
+            imageUrls[fieldName] = urls
+          } else {
+            // Single upload
+            const upload = value as UploadValue
+            const blob = await fetch(upload.base64).then(r => r.blob())
+            const formData = new FormData()
+            formData.append('files', blob, upload.fileName)
+            formData.append('fieldName_0', fieldName)
+            formData.append('submissionId', submissionId)
+            const res = await fetch('/api/upload', { method: 'POST', body: formData })
+            const result = await res.json()
+            if (result.urls) imageUrls[fieldName] = Object.values(result.urls)[0] as string
+          }
+        } catch (err) {
+          console.error(`Upload error for ${fieldName}:`, err)
+        }
+      }
+    }
+
+    // Step 2: Build clean payload with URLs instead of base64
+    setUploadProgress('Finalizando...')
+    const clean: Record<string, unknown> = { submissionId, submitted_at: new Date().toISOString() }
+    Object.entries(data).forEach(([k, v]) => {
+      if (imageUrls[k]) {
+        clean[k] = imageUrls[k]
+      } else if (v && typeof v === 'object' && 'base64' in (v as Record<string, unknown>)) {
+        clean[k] = null // failed upload
       } else if (Array.isArray(v) && v[0]?.base64) {
-        clean[k] = v.map((i: MultiUploadItem) => ({ name: i.name, uploaded: true }))
+        clean[k] = null // failed upload
       } else {
         clean[k] = v
       }
     })
+
+    // Step 3: Send to n8n webhook
     try {
       await fetch(WEBHOOK_URL, { 
         method: 'POST', 
@@ -315,6 +368,7 @@ export default function DiagnosticoForm() {
     } catch { console.log('webhook error') }
     setDone(true)
     setSending(false)
+    setUploadProgress('')
   }
 
   const s = steps[step]
@@ -585,7 +639,7 @@ export default function DiagnosticoForm() {
                   {sending ? (
                     <>
                       <span className="material-symbols-outlined text-lg align-middle mr-1 animate-spin">progress_activity</span>
-                      Enviando...
+                      {uploadProgress || 'Enviando...'}
                     </>
                   ) : (
                     <>
