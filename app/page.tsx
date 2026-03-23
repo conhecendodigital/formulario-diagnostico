@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK_URL || "https://n8n.vendasvno.com/webhook-test/bcd43c77-f1f8-426f-b263-c15486892231"
+const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK_URL || "https://webhook.vendasvno.com/webhook/bcd43c77-f1f8-426f-b263-c15486892231"
 
 // ═══════════════════════════════════════════════
 // Types
