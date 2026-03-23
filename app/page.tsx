@@ -695,10 +695,10 @@ export default function DiagnosticoForm() {
                 <span className="text-sm font-bold text-white">Resumo</span>
               </div>
               <div className="space-y-1.5 text-xs text-slate-400">
-                {data.nome && <p>👤 <span className="text-slate-300">{data.nome as string}</span></p>}
-                {data.instagram && <p>📱 <span className="text-slate-300">{data.instagram as string}</span></p>}
-                {data.nicho && <p>🎯 <span className="text-slate-300">{data.nicho as string}</span></p>}
-                {data.objetivo && <p>🚀 <span className="text-slate-300">{data.objetivo as string}</span></p>}
+                {data.nome ? <p>👤 <span className="text-slate-300">{String(data.nome)}</span></p> : null}
+                {data.instagram ? <p>📱 <span className="text-slate-300">{String(data.instagram)}</span></p> : null}
+                {data.nicho ? <p>🎯 <span className="text-slate-300">{String(data.nicho)}</span></p> : null}
+                {data.objetivo ? <p>🚀 <span className="text-slate-300">{String(data.objetivo)}</span></p> : null}
                 <p>📸 <span className="text-slate-300">
                   {Object.entries(data).filter(([, v]) => v && typeof v === 'object' && 'base64' in (v as Record<string, unknown>)).length} prints enviados
                 </span></p>
