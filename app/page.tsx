@@ -26,8 +26,8 @@ type QuestionDef =
   | { kind: 'text'; name: string; label: string; placeholder: string; required: boolean }
   | { kind: 'select'; name: string; label: string; options: string[]; required: boolean }
   | { kind: 'multi'; name: string; label: string; options: string[]; required: boolean; hint?: string }
-  | { kind: 'upload'; name: string; label: string; instruction: string; required: boolean }
-  | { kind: 'multiupload'; name: string; label: string; instruction: string }
+  | { kind: 'upload'; name: string; label: string; instruction: React.ReactNode; required: boolean }
+  | { kind: 'multiupload'; name: string; label: string; instruction: React.ReactNode }
   | { kind: 'submit' }
 
 // ═══════════════════════════════════════════════
@@ -37,7 +37,7 @@ type QuestionDef =
 function FileUpload({
   name, label, instruction, required, value, onChange
 }: {
-  name: string; label: string; instruction?: string; required?: boolean;
+  name: string; label: string; instruction?: React.ReactNode; required?: boolean;
   value: UploadValue | null; onChange: (name: string, value: UploadValue | null) => void
 }) {
   const ref = useRef<HTMLInputElement>(null)
@@ -66,7 +66,9 @@ function FileUpload({
         {label} {required && <span className="text-[#0ea5e9]">*</span>}
       </label>
       {instruction && (
-        <p className="text-xs text-slate-400 mb-4 leading-relaxed">{instruction}</p>
+        <div className="text-sm text-slate-300 mb-5 leading-relaxed bg-white/[0.03] border border-white/5 p-4 rounded-xl">
+          {instruction}
+        </div>
       )}
       {preview ? (
         <div className="relative rounded-2xl overflow-hidden border border-white/10 glass-card">
@@ -110,7 +112,7 @@ function FileUpload({
 function MultiUpload({
   name, label, instruction, onChange
 }: {
-  name: string; label: string; instruction?: string;
+  name: string; label: string; instruction?: React.ReactNode;
   onChange: (name: string, value: MultiUploadItem[]) => void
 }) {
   const ref = useRef<HTMLInputElement>(null)
@@ -143,8 +145,14 @@ function MultiUpload({
 
   return (
     <div>
-      <label className="block text-lg sm:text-xl font-bold text-white mb-1.5">{label}</label>
-      {instruction && <p className="text-xs text-slate-400 mb-4">{instruction}</p>}
+      <label className="block text-lg sm:text-xl font-bold text-white mb-1.5">
+        {label}
+      </label>
+      {instruction && (
+        <div className="text-sm text-slate-300 mb-5 leading-relaxed bg-white/[0.03] border border-white/5 p-4 rounded-xl">
+          {instruction}
+        </div>
+      )}
       <div className="grid grid-cols-3 gap-3 mb-2">
         {previews.map((p, i) => (
           <div key={i} className="relative rounded-xl overflow-hidden border border-white/10 aspect-square glass-card">
@@ -184,15 +192,49 @@ const questions: QuestionDef[] = [
 
   // 3 — Print do perfil
   { kind: 'upload', name: 'print_perfil', label: 'Print do seu PERFIL completo', required: true,
-    instruction: 'Abra seu perfil no Instagram e tire um print da tela inteira. Quero ver: foto, bio, seguidores e o grid.' },
+    instruction: (
+      <div className="space-y-2">
+        <p className="font-bold text-white mb-1">Como conseguir esse print:</p>
+        <ol className="list-decimal list-inside space-y-1 text-slate-400">
+          <li>Abra o aplicativo do Instagram</li>
+          <li>Vá até o seu próprio perfil (onde aparece seu grid)</li>
+          <li>Tire um print da tela inteira</li>
+        </ol>
+        <p className="text-xs text-[#0ea5e9] mt-2 font-medium bg-[#0ea5e9]/10 p-2 rounded inline-block">
+          Dica: Precisamos ver sua foto, bio, números e o começo dos seus posts.
+        </p>
+      </div>
+    ) },
 
   // 4 — Print dos insights
   { kind: 'upload', name: 'print_insights', label: 'Print dos INSIGHTS gerais', required: true,
-    instruction: 'Instagram → Painel profissional → Insights → Visão geral. Tire print dessa tela (alcance, engajamento, seguidores).' },
+    instruction: (
+      <div className="space-y-2">
+        <p className="font-bold text-white mb-1">Como conseguir esse print:</p>
+        <ol className="list-decimal list-inside space-y-1 text-slate-400">
+          <li>No seu perfil, toque em <strong>Painel Profissional</strong></li>
+          <li>Aqui você já verá um resumo do Alcance, Engajamento e Seguidores</li>
+          <li>Tire um print dessa tela exata</li>
+        </ol>
+        <a href="https://help.instagram.com/788388387972460/?cms_platform=android-app&helpref=platform_switcher&locale=pt_BR" target="_blank" rel="noopener noreferrer" className="text-xs text-[#0ea5e9] hover:underline mt-2 font-medium flex items-center gap-1">
+          <span className="material-symbols-outlined text-sm">open_in_new</span>
+          Ver tutorial oficial do Instagram
+        </a>
+      </div>
+    ) },
 
   // 5 — Print melhor post
   { kind: 'upload', name: 'print_melhor_post', label: 'Print do seu MELHOR POST recente', required: true,
-    instruction: 'Abra o post que foi melhor nos últimos 30 dias. Print mostrando o post + curtidas + comentários.' },
+    instruction: (
+      <div className="space-y-2">
+        <p className="font-bold text-white mb-1">Como conseguir esse print:</p>
+        <ol className="list-decimal list-inside space-y-1 text-slate-400">
+          <li>Olhe seus posts dos últimos 30 dias</li>
+          <li>Abra aquele que você sentiu que deu mais retorno ou engajamento</li>
+          <li>Tire um print para mostrar a imagem/video do post + curtidas</li>
+        </ol>
+      </div>
+    ) },
 
   // 6 — Objetivo
   { kind: 'select', name: 'objetivo', label: 'Qual seu objetivo PRINCIPAL?', required: true,
