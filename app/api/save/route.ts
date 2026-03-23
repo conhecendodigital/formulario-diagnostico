@@ -6,32 +6,45 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Simple sanitize: trim strings, limit length
+function sanitize(val: unknown, maxLen = 500): string {
+  if (typeof val !== 'string') return ''
+  return val.trim().slice(0, maxLen)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    // Validate required fields
+    if (!body.submissionId || !body.email) {
+      return NextResponse.json({ error: 'Campos obrigatórios ausentes' }, { status: 400 })
+    }
+
     const { error } = await supabase
       .from('diagnosticos')
       .upsert({
-        submission_id: body.submissionId,
-        instagram: body.instagram,
-        nome: body.nome,
-        email: body.email,
-        nicho: body.nicho,
-        objetivo: body.objetivo,
-        dificuldade: body.dificuldade,
-        fatura: body.fatura,
-        descobrir: Array.isArray(body.descobrir) ? body.descobrir : [body.descobrir].filter(Boolean),
-        tom: body.tom,
-        print_perfil: body.print_perfil,
-        print_insights: body.print_insights,
-        print_melhor_post: body.print_melhor_post,
-        submitted_at: body.submitted_at,
+        submission_id: sanitize(body.submissionId, 100),
+        instagram: sanitize(body.instagram, 100),
+        nome: sanitize(body.nome, 200),
+        email: sanitize(body.email, 200),
+        nicho: sanitize(body.nicho, 200),
+        objetivo: sanitize(body.objetivo, 200),
+        dificuldade: sanitize(body.dificuldade, 200),
+        fatura: sanitize(body.fatura, 200),
+        descobrir: Array.isArray(body.descobrir)
+          ? body.descobrir.map((s: unknown) => sanitize(s, 200)).filter(Boolean)
+          : [],
+        tom: sanitize(body.tom, 200),
+        print_perfil: sanitize(body.print_perfil, 1000),
+        print_insights: sanitize(body.print_insights, 1000),
+        print_melhor_post: sanitize(body.print_melhor_post, 1000),
+        submitted_at: body.submitted_at || new Date().toISOString(),
       }, { onConflict: 'submission_id' })
 
     if (error) {
       console.error('Supabase insert error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: 'Erro ao salvar dados' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
