@@ -445,7 +445,7 @@ export default function DiagnosticoForm() {
     })
 
     try {
-      const webhookRes = await fetch(WEBHOOK_URL, {
+      const webhookRes = await fetch('/api/webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(clean)
