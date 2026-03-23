@@ -95,7 +95,7 @@ function FileUpload({
           <span className="material-symbols-outlined text-5xl text-slate-500 mb-3 block">add_photo_alternate</span>
           <p className="text-sm text-slate-400 font-medium">Toca aqui para tirar ou escolher o print</p>
           <p className="text-xs text-slate-600 mt-1.5">JPG, PNG — máx 10MB</p>
-          <input ref={ref} type="file" accept="image/*" capture="environment" className="hidden"
+          <input ref={ref} type="file" accept="image/*" className="hidden"
             onChange={(e) => handleFile(e.target.files?.[0])} />
         </div>
       )}
