@@ -470,33 +470,62 @@ export default function DiagnosticoForm() {
     switch (q.kind) {
       case 'intro':
         return (
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Estudo Completo do Teu Perfil</h1>
-            <p className="text-slate-500 text-sm mb-8">Preenche com calma. Quanto mais honesto, melhor o resultado.</p>
-            <div className="space-y-4">
-              <div className="glass-card rounded-2xl p-6">
-                <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                  São só <strong className="text-white">10 perguntas</strong> — leva uns 3 minutos.
-                </p>
-                <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                  Vou te pedir <strong className="text-white">3 prints do Instagram</strong> — eles me dão dados reais que não consigo ver por fora.
-                </p>
-                <p className="text-slate-400 text-sm leading-relaxed">
-                  Quanto mais honesto você for, melhor o estudo.
-                </p>
+          <div className="flex flex-col items-center text-center mt-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#0ea5e9] to-blue-600 p-[1px] mb-8 shadow-2xl shadow-[#0ea5e9]/20 transform rotate-3">
+              <div className="w-full h-full rounded-2xl bg-[#0a0a0f] flex items-center justify-center transform -rotate-3">
+                <span className="material-symbols-outlined text-[#0ea5e9] text-3xl">analytics</span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: 'lock', text: 'Confidencial' },
-                  { icon: 'timer', text: '3 minutos' },
-                  { icon: 'photo_camera', text: '3 prints' },
-                  { icon: 'analytics', text: 'Entrega em 48h' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl glass-card">
-                    <span className="material-symbols-outlined text-[#0ea5e9] text-xl">{item.icon}</span>
-                    <span className="text-sm text-slate-300 font-medium">{item.text}</span>
+            </div>
+            
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-4 leading-tight">
+              Estudo Completo<br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-600">
+                do Teu Perfil
+              </span>
+            </h1>
+            
+            <p className="text-slate-400 text-[15px] mb-10 max-w-sm leading-relaxed">
+              Vou analisar seu Instagram a fundo e entregar um diagnóstico profissional e um plano de ação claro.
+            </p>
+
+            <div className="w-full space-y-3 text-left">
+              <div className="glass-card rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-[#0ea5e9]/30">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#0ea5e9]/10 rounded-full blur-3xl -mr-10 -mt-10 transition-opacity group-hover:opacity-100 opacity-50" />
+                <div className="flex items-start gap-4 relative z-10">
+                  <div className="w-10 h-10 rounded-full bg-[#0ea5e9]/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[#0ea5e9] text-xl">timer</span>
                   </div>
-                ))}
+                  <div>
+                    <h3 className="text-white font-bold text-sm mb-1 tracking-tight">Rápido e prático</h3>
+                    <p className="text-slate-400 text-xs sm:text-[13px] leading-relaxed">São só 10 perguntas direto ao ponto. Leva cerca de 3 minutos para preencher tudo.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-purple-500/30">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-opacity group-hover:opacity-100 opacity-50" />
+                <div className="flex items-start gap-4 relative z-10">
+                  <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-purple-400 text-xl">photo_camera</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-sm mb-1 tracking-tight">Análise com dados reais</h3>
+                    <p className="text-slate-400 text-xs sm:text-[13px] leading-relaxed">Vou te pedir 3 prints (perfil, insights e melhor post) para basear o estudo em dados concretos.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-emerald-500/30">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-opacity group-hover:opacity-100 opacity-50" />
+                <div className="flex items-start gap-4 relative z-10">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-emerald-400 text-xl">lock</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-sm mb-1 tracking-tight">100% Confidencial</h3>
+                    <p className="text-slate-400 text-xs sm:text-[13px] leading-relaxed">Seus dados e prints são vitosos apenas por mim e deletados imediatamente após a análise.</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -505,15 +534,15 @@ export default function DiagnosticoForm() {
       case 'contact':
         return (
           <div>
-            <div className="mb-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
-                Pergunta 1 de {TOTAL_QUESTIONS}
+            <div className="mb-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#0ea5e9]/70 bg-[#0ea5e9]/10 px-2.5 py-1 rounded-full">
+                Passo 1 de {TOTAL_QUESTIONS}
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-white mb-6">Seus dados</h2>
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-white mb-2">
+            <h2 className="text-2xl sm:text-3xl font-black text-white mb-8 tracking-tight">Primeiro, seus dados básicos</h2>
+            <div className="space-y-5 sm:space-y-6">
+              <div className="group">
+                <label className="block text-sm font-bold text-slate-300 mb-2.5 ml-1 transition-colors group-focus-within:text-[#0ea5e9]">
                   Seu @ no Instagram <span className="text-[#0ea5e9]">*</span>
                 </label>
                 <input
@@ -522,11 +551,11 @@ export default function DiagnosticoForm() {
                   onChange={e => set('instagram', e.target.value)}
                   placeholder="@seuperfil"
                   autoFocus
-                  className="w-full px-5 py-3.5 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all"
+                  className="w-full px-5 py-4 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-slate-600 text-[15px] focus:outline-none focus:border-[#0ea5e9] focus:bg-[#0ea5e9]/5 transition-all focus:ring-4 ring-[#0ea5e9]/10 shadow-inner shadow-black/20"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-bold text-white mb-2">
+              <div className="group">
+                <label className="block text-sm font-bold text-slate-300 mb-2.5 ml-1 transition-colors group-focus-within:text-[#0ea5e9]">
                   Como quer ser chamado? <span className="text-[#0ea5e9]">*</span>
                 </label>
                 <input
@@ -534,54 +563,62 @@ export default function DiagnosticoForm() {
                   value={(data.nome as string) || ''}
                   onChange={e => set('nome', e.target.value)}
                   placeholder="Ex: João"
-                  className="w-full px-5 py-3.5 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all"
+                  className="w-full px-5 py-4 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-slate-600 text-[15px] focus:outline-none focus:border-[#0ea5e9] focus:bg-[#0ea5e9]/5 transition-all focus:ring-4 ring-[#0ea5e9]/10 shadow-inner shadow-black/20"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-bold text-white mb-2">
+              <div className="group">
+                <label className="block text-sm font-bold text-slate-300 mb-2.5 ml-1 transition-colors group-focus-within:text-[#0ea5e9]">
                   Email para receber o estudo <span className="text-[#0ea5e9]">*</span>
                 </label>
                 <input
                   type="email"
                   value={(data.email as string) || ''}
                   onChange={e => set('email', e.target.value)}
-                  placeholder="seuemail@email.com"
-                  className="w-full px-5 py-3.5 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all"
+                  placeholder="seuemail@exemplo.com"
+                  className="w-full px-5 py-4 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-slate-600 text-[15px] focus:outline-none focus:border-[#0ea5e9] focus:bg-[#0ea5e9]/5 transition-all focus:ring-4 ring-[#0ea5e9]/10 shadow-inner shadow-black/20"
                 />
               </div>
             </div>
-            <p className="text-[11px] text-slate-600 mt-4">Pressione <span className="text-slate-500 font-bold">Enter ↵</span> para continuar</p>
+            <div className="mt-8 flex items-center gap-2 text-slate-500 bg-white/5 px-4 py-2.5 rounded-lg w-fit">
+              <span className="material-symbols-outlined text-lg">keyboard_return</span>
+              <p className="text-xs font-medium">Pressione <strong className="text-white">Enter</strong> para avançar</p>
+            </div>
           </div>
         )
 
       case 'text':
         return (
           <div>
-            <div className="mb-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+            <div className="mb-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#0ea5e9]/70 bg-[#0ea5e9]/10 px-2.5 py-1 rounded-full">
                 Pergunta {questionNumber} de {TOTAL_QUESTIONS}
               </span>
             </div>
-            <label className="block text-xl sm:text-2xl font-bold text-white mb-5">
+            <label className="block text-2xl sm:text-3xl font-black text-white mb-8 tracking-tight">
               {q.label} {q.required && <span className="text-[#0ea5e9]">*</span>}
             </label>
-            <input
-              type="text"
-              value={(data[q.name] as string) || ''}
-              onChange={e => set(q.name, e.target.value)}
-              placeholder={q.placeholder}
-              autoFocus
-              className="w-full px-5 py-4 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-base focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all"
-            />
-            <p className="text-[11px] text-slate-600 mt-3">Pressione <span className="text-slate-500 font-bold">Enter ↵</span> para continuar</p>
+            <div className="group">
+              <input
+                type="text"
+                value={(data[q.name] as string) || ''}
+                onChange={e => set(q.name, e.target.value)}
+                placeholder={q.placeholder}
+                autoFocus
+                className="w-full px-5 py-4.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-slate-600 text-lg focus:outline-none focus:border-[#0ea5e9] focus:bg-[#0ea5e9]/5 transition-all focus:ring-4 ring-[#0ea5e9]/10 shadow-inner shadow-black/20"
+              />
+            </div>
+            <div className="mt-8 flex items-center gap-2 text-slate-500 bg-white/5 px-4 py-2.5 rounded-lg w-fit">
+              <span className="material-symbols-outlined text-lg">keyboard_return</span>
+              <p className="text-xs font-medium">Pressione <strong className="text-white">Enter</strong> para avançar</p>
+            </div>
           </div>
         )
 
       case 'upload':
         return (
-          <div>
-            <div className="mb-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+          <div className="w-full">
+            <div className="mb-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#0ea5e9]/70 bg-[#0ea5e9]/10 px-2.5 py-1 rounded-full">
                 Pergunta {questionNumber} de {TOTAL_QUESTIONS}
               </span>
             </div>
@@ -594,9 +631,9 @@ export default function DiagnosticoForm() {
 
       case 'multiupload':
         return (
-          <div>
-            <div className="mb-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+          <div className="w-full">
+            <div className="mb-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 bg-white/5 px-2.5 py-1 rounded-full">
                 Opcional
               </span>
             </div>
@@ -609,31 +646,33 @@ export default function DiagnosticoForm() {
 
       case 'select':
         return (
-          <div>
-            <div className="mb-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+          <div className="w-full">
+            <div className="mb-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#0ea5e9]/70 bg-[#0ea5e9]/10 px-2.5 py-1 rounded-full">
                 Pergunta {questionNumber} de {TOTAL_QUESTIONS}
               </span>
             </div>
-            <label className="block text-xl sm:text-2xl font-bold text-white mb-5">
+            <label className="block text-2xl sm:text-3xl font-black text-white mb-8 tracking-tight">
               {q.label} {q.required && <span className="text-[#0ea5e9]">*</span>}
             </label>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {q.options.map((o, idx) => (
                 <button
                   key={o}
                   onClick={() => handleSelect(q.name, o)}
-                  className={`w-full text-left px-5 py-3.5 rounded-xl border text-sm transition-all font-medium flex items-center gap-3 ${
+                  className={`w-full text-left px-5 py-4 rounded-xl border text-[15px] transition-all font-medium flex items-center gap-4 group ${
                     data[q.name] === o
-                      ? 'bg-[#0ea5e9]/15 border-[#0ea5e9]/40 text-[#0ea5e9]'
-                      : 'bg-white/[0.02] border-white/6 text-slate-400 hover:bg-white/[0.04] hover:border-white/10'
+                      ? 'bg-[#0ea5e9]/10 border-[#0ea5e9]/50 text-white shadow-[0_0_30px_-5px_rgba(14,165,233,0.3)]'
+                      : 'bg-white/[0.02] border-white/5 text-slate-300 hover:bg-white/[0.04] hover:border-white/20'
                   }`}
                 >
-                  <span className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 text-xs font-black transition-all ${
-                    data[q.name] === o ? 'border-[#0ea5e9] bg-[#0ea5e9] text-white' : 'border-white/15 text-slate-600'
+                  <span className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center flex-shrink-0 text-xs font-black transition-all ${
+                    data[q.name] === o 
+                      ? 'border-[#0ea5e9] bg-[#0ea5e9] text-white' 
+                      : 'border-white/10 text-slate-500 group-hover:border-white/30 group-hover:text-slate-300'
                   }`}>
                     {data[q.name] === o ? (
-                      <span className="material-symbols-outlined text-sm">check</span>
+                      <span className="material-symbols-outlined text-sm font-bold">check</span>
                     ) : String.fromCharCode(65 + idx)}
                   </span>
                   {o}
@@ -645,39 +684,39 @@ export default function DiagnosticoForm() {
 
       case 'multi':
         return (
-          <div>
-            <div className="mb-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+          <div className="w-full">
+            <div className="mb-3 flex items-center gap-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#0ea5e9]/70 bg-[#0ea5e9]/10 px-2.5 py-1 rounded-full">
                 Pergunta {questionNumber} de {TOTAL_QUESTIONS}
               </span>
+              {q.hint && <span className="text-xs font-bold text-slate-500">{q.hint}</span>}
             </div>
-            <label className="block text-xl sm:text-2xl font-bold text-white mb-5">
+            <label className="block text-2xl sm:text-3xl font-black text-white mb-8 tracking-tight">
               {q.label} {q.required && <span className="text-[#0ea5e9]">*</span>}
             </label>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {q.options.map(o => {
                 const sel = ((data[q.name] as string[]) || []).includes(o)
                 return (
                   <button
                     key={o}
                     onClick={() => toggle(q.name, o)}
-                    className={`w-full text-left px-5 py-3.5 rounded-xl border text-sm transition-all flex items-center gap-3 font-medium ${
+                    className={`w-full text-left px-5 py-4 rounded-xl border text-[15px] transition-all font-medium flex items-center gap-4 group ${
                       sel
-                        ? 'bg-[#0ea5e9]/15 border-[#0ea5e9]/40 text-[#0ea5e9]'
-                        : 'bg-white/[0.02] border-white/6 text-slate-400 hover:bg-white/[0.04] hover:border-white/10'
+                        ? 'bg-[#0ea5e9]/10 border-[#0ea5e9]/50 text-white shadow-[0_0_30px_-5px_rgba(14,165,233,0.3)]'
+                        : 'bg-white/[0.02] border-white/5 text-slate-300 hover:bg-white/[0.04] hover:border-white/20'
                     }`}
                   >
-                    <div className={`w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border-2 transition-all ${
-                      sel ? 'bg-[#0ea5e9] border-[#0ea5e9]' : 'border-white/20'
+                    <span className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 transition-all ${
+                      sel ? 'bg-[#0ea5e9] text-white' : 'border-2 border-white/10 group-hover:border-white/30'
                     }`}>
-                      {sel && <span className="material-symbols-outlined text-white text-sm">check</span>}
-                    </div>
+                      {sel && <span className="material-symbols-outlined text-[16px] font-bold">check</span>}
+                    </span>
                     {o}
                   </button>
                 )
               })}
             </div>
-            <p className="text-[10px] text-slate-600 mt-3 font-medium">{q.hint || 'Pode escolher mais de um'}</p>
           </div>
         )
 
@@ -712,13 +751,13 @@ export default function DiagnosticoForm() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Fixed top: progress */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/5" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-        <div className="max-w-lg mx-auto px-4 sm:px-5 py-2.5 sm:py-3">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/70">
-              {q.kind === 'intro' ? 'Início' : `${Math.round(pct)}% completo`}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/70 backdrop-blur-2xl border-b border-white/[0.04]" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="max-w-xl mx-auto px-5 py-3.5">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0ea5e9]/80">
+              {q.kind === 'intro' ? 'Diagnóstico' : `${Math.round(pct)}% completo`}
             </span>
-            <span className="text-[10px] font-bold text-slate-600">
+            <span className="text-[10px] font-bold text-slate-500 bg-white/5 px-2 py-0.5 rounded-full">
               {answeredCount}/{TOTAL_QUESTIONS}
             </span>
           </div>
@@ -752,8 +791,8 @@ export default function DiagnosticoForm() {
       </div>
 
       {/* Fixed bottom: navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-t border-white/5" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        <div className="max-w-lg mx-auto px-4 sm:px-5 py-3 sm:py-4 flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 z-[60] bg-[#0a0a0f]/70 backdrop-blur-2xl border-t border-white/[0.04]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="max-w-xl mx-auto px-5 py-4 sm:py-5 flex gap-3">
           {qi > 0 && (
             <button
               onClick={goBack}
