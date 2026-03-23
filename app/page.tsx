@@ -423,6 +423,15 @@ export default function DiagnosticoForm() {
         body: JSON.stringify(clean)
       })
     } catch { console.log('webhook error') }
+
+    // Salvar no Supabase como backup
+    try {
+      await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clean)
+      })
+    } catch { console.log('supabase save error') }
     setDone(true)
     setSending(false)
     setUploadProgress('')
