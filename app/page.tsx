@@ -273,6 +273,34 @@ export default function DiagnosticoForm() {
   const [sending, setSending] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
   const [direction, setDirection] = useState(1)
+  const [loaded, setLoaded] = useState(false)
+
+  // Load saved state from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedData = localStorage.getItem('diag_data')
+      const savedStep = localStorage.getItem('diag_step')
+      if (savedData) setData(JSON.parse(savedData))
+      if (savedStep) setQi(Math.min(parseInt(savedStep, 10), questions.length - 1))
+    } catch {}
+    setLoaded(true)
+  }, [])
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    if (!loaded) return
+    try {
+      localStorage.setItem('diag_data', JSON.stringify(data))
+    } catch {}
+  }, [data, loaded])
+
+  // Save step to localStorage whenever it changes
+  useEffect(() => {
+    if (!loaded) return
+    try {
+      localStorage.setItem('diag_step', String(qi))
+    } catch {}
+  }, [qi, loaded])
 
   const set = useCallback((k: string, v: unknown) => setData(p => ({ ...p, [k]: v })), [])
   const toggle = useCallback((k: string, v: string) => {
@@ -436,6 +464,13 @@ export default function DiagnosticoForm() {
       if (!saveRes.ok) console.error('Save failed:', saveRes.status, await saveRes.text().catch(() => ''))
       else console.log('✅ Dados salvos no Supabase')
     } catch (err) { console.error('❌ Save error:', err) }
+
+    // Clear saved progress
+    try {
+      localStorage.removeItem('diag_data')
+      localStorage.removeItem('diag_step')
+    } catch {}
+
     setDone(true)
     setSending(false)
     setUploadProgress('')
