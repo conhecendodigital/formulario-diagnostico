@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK_URL || "https://n8n.vendasvno.com/webhook-test/bcd43c77-f1f8-426f-b263-c15486892231"
@@ -20,33 +20,25 @@ interface MultiUploadItem {
   name: string
 }
 
-interface FieldDef {
-  name: string
-  label: string
-  type: 'text' | 'textarea' | 'select' | 'multi' | 'upload' | 'multiupload'
-  placeholder?: string
-  required?: boolean
-  instruction?: string
-  example?: string
-  options?: string[]
-}
-
-interface StepDef {
-  id: string
-  title: string
-  subtitle: string
-  fields: FieldDef[]
-}
+type QuestionDef =
+  | { kind: 'intro' }
+  | { kind: 'contact' }
+  | { kind: 'text'; name: string; label: string; placeholder: string; required: boolean }
+  | { kind: 'select'; name: string; label: string; options: string[]; required: boolean }
+  | { kind: 'multi'; name: string; label: string; options: string[]; required: boolean; hint?: string }
+  | { kind: 'upload'; name: string; label: string; instruction: string; required: boolean }
+  | { kind: 'multiupload'; name: string; label: string; instruction: string }
+  | { kind: 'submit' }
 
 // ═══════════════════════════════════════════════
 // File Upload Component
 // ═══════════════════════════════════════════════
 
-function FileUpload({ 
-  name, label, instruction, required, value, onChange 
-}: { 
-  name: string; label: string; instruction?: string; required?: boolean; 
-  value: UploadValue | null; onChange: (name: string, value: UploadValue | null) => void 
+function FileUpload({
+  name, label, instruction, required, value, onChange
+}: {
+  name: string; label: string; instruction?: string; required?: boolean;
+  value: UploadValue | null; onChange: (name: string, value: UploadValue | null) => void
 }) {
   const ref = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -64,17 +56,17 @@ function FileUpload({
     reader.readAsDataURL(file)
   }
 
-  const handleDrop = (e: React.DragEvent) => { 
-    e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files[0]) 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files[0])
   }
 
   return (
-    <div className="mb-2">
-      <label className="block text-sm font-bold text-white mb-1.5">
+    <div>
+      <label className="block text-lg sm:text-xl font-bold text-white mb-1.5">
         {label} {required && <span className="text-[#0ea5e9]">*</span>}
       </label>
       {instruction && (
-        <p className="text-xs text-slate-400 mb-3 leading-relaxed">{instruction}</p>
+        <p className="text-xs text-slate-400 mb-4 leading-relaxed">{instruction}</p>
       )}
       {preview ? (
         <div className="relative rounded-2xl overflow-hidden border border-white/10 glass-card">
@@ -94,15 +86,15 @@ function FileUpload({
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
           onClick={() => ref.current?.click()}
-          className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
-            dragging 
-              ? "border-[#0ea5e9] bg-[#0ea5e9]/10" 
+          className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
+            dragging
+              ? "border-[#0ea5e9] bg-[#0ea5e9]/10"
               : "border-white/10 hover:border-white/20 hover:bg-white/[0.02]"
           }`}
         >
-          <span className="material-symbols-outlined text-4xl text-slate-500 mb-2 block">add_photo_alternate</span>
+          <span className="material-symbols-outlined text-5xl text-slate-500 mb-3 block">add_photo_alternate</span>
           <p className="text-sm text-slate-400 font-medium">Toca aqui para tirar ou escolher o print</p>
-          <p className="text-xs text-slate-600 mt-1">JPG, PNG — máx 10MB</p>
+          <p className="text-xs text-slate-600 mt-1.5">JPG, PNG — máx 10MB</p>
           <input ref={ref} type="file" accept="image/*" capture="environment" className="hidden"
             onChange={(e) => handleFile(e.target.files?.[0])} />
         </div>
@@ -115,11 +107,11 @@ function FileUpload({
 // Multi Upload Component
 // ═══════════════════════════════════════════════
 
-function MultiUpload({ 
-  name, label, instruction, onChange 
-}: { 
-  name: string; label: string; instruction?: string; 
-  onChange: (name: string, value: MultiUploadItem[]) => void 
+function MultiUpload({
+  name, label, instruction, onChange
+}: {
+  name: string; label: string; instruction?: string;
+  onChange: (name: string, value: MultiUploadItem[]) => void
 }) {
   const ref = useRef<HTMLInputElement>(null)
   const [previews, setPreviews] = useState<MultiUploadItem[]>([])
@@ -150,9 +142,9 @@ function MultiUpload({
   }
 
   return (
-    <div className="mb-2">
-      <label className="block text-sm font-bold text-white mb-1.5">{label}</label>
-      {instruction && <p className="text-xs text-slate-400 mb-3">{instruction}</p>}
+    <div>
+      <label className="block text-lg sm:text-xl font-bold text-white mb-1.5">{label}</label>
+      {instruction && <p className="text-xs text-slate-400 mb-4">{instruction}</p>}
       <div className="grid grid-cols-3 gap-3 mb-2">
         {previews.map((p, i) => (
           <div key={i} className="relative rounded-xl overflow-hidden border border-white/10 aspect-square glass-card">
@@ -177,103 +169,68 @@ function MultiUpload({
 }
 
 // ═══════════════════════════════════════════════
-// Steps Data
+// 10 questions (intro + 10 + submit = 12 slides)
 // ═══════════════════════════════════════════════
 
-const steps: StepDef[] = [
-  {
-    id: "intro", title: "Estudo Completo do Teu Perfil",
-    subtitle: "Preenche com calma. Quanto mais honesto, melhor o resultado.", fields: []
-  },
-  {
-    id: "basico", title: "Sobre você", subtitle: "O básico para te conhecer",
-    fields: [
-      { name: "instagram", label: "Seu @ no Instagram", type: "text", placeholder: "@seuperfil", required: true },
-      { name: "nome", label: "Como quer ser chamado no estudo?", type: "text", placeholder: "Ex: João", required: true },
-      { name: "email", label: "Email para receber o estudo", type: "text", placeholder: "seuemail@email.com", required: true },
-      { name: "nicho", label: "Qual seu nicho?", type: "text", placeholder: "Ex: Nutrição, Marketing, Moda...", required: true },
-      { name: "tempo", label: "Há quanto tempo cria conteúdo?", type: "select", required: true,
-        options: ["Menos de 6 meses", "6 meses a 1 ano", "1 a 2 anos", "2 a 5 anos", "Mais de 5 anos"] },
-      { name: "frequencia", label: "Quantas vezes por semana você posta?", type: "select", required: true,
-        options: ["Menos de 1x", "1-2x", "3-4x", "5-6x", "Todo dia"] }
-    ]
-  },
-  {
-    id: "prints", title: "Prints do seu perfil", subtitle: "Essa é a parte mais importante. Com os prints eu analiso com dados REAIS.",
-    fields: [
-      { name: "print_perfil", label: "Print do seu PERFIL completo", type: "upload", required: true,
-        instruction: "Abra seu perfil no Instagram e tire um print da tela inteira. Quero ver: foto, bio, seguidores e o grid." },
-      { name: "print_insights", label: "Print dos INSIGHTS gerais", type: "upload", required: true,
-        instruction: "Instagram → Painel profissional → Insights → Visão geral. Tire print dessa tela (alcance, engajamento, seguidores)." },
-      { name: "print_seguidores", label: "Print da DEMOGRAFIA (idade/gênero)", type: "upload", required: false,
-        instruction: "Insights → Total de seguidores → tire print da parte de IDADE e GÊNERO. Me ajuda a entender quem te segue." },
-      { name: "print_melhor_post", label: "Print do seu MELHOR POST recente", type: "upload", required: true,
-        instruction: "Abra o post que você acha que foi melhor nos últimos 30 dias. Print mostrando o post + curtidas + comentários." },
-      { name: "print_melhor_reel", label: "Print do seu MELHOR REEL (se faz Reels)", type: "upload", required: false,
-        instruction: "Se você faz Reels, abra o melhor e tire print com as views. Se não faz, pule." },
-      { name: "print_insights_post", label: "Print dos INSIGHTS de um post", type: "upload", required: false,
-        instruction: "Abra qualquer post → 'Ver insights' → print. Mostra salvamentos, compartilhamentos, alcance." },
-      { name: "prints_extras", label: "Mais prints? Suba aqui (até 5)", type: "multiupload", required: false,
-        instruction: "Prints extras de posts, stories, insights — qualquer coisa que você ache relevante." }
-    ]
-  },
-  {
-    id: "objetivo", title: "Seus objetivos", subtitle: "O que você quer com o perfil?",
-    fields: [
-      { name: "objetivo", label: "Qual seu objetivo PRINCIPAL?", type: "select", required: true,
-        options: ["Ganhar seguidores", "Vender produto/serviço", "Construir autoridade", "Conseguir clientes", "Monetizar com publi", "Criar comunidade", "Divulgar negócio local", "Ainda não sei"] },
-      { name: "mudar", label: "Se pudesse mudar UMA coisa no perfil, o que seria?", type: "textarea", placeholder: "Fala sem filtro...", required: true },
-      { name: "dificuldade", label: "Sua MAIOR dificuldade hoje?", type: "select", required: true,
-        options: ["Não sei o que postar", "Posto mas ninguém vê", "Tenho views mas ninguém compra", "Não mantenho constância", "Não sei vender sem parecer chato", "Cresci mas não gera dinheiro", "Não sei usar Reels", "Tudo acima"] }
-    ]
-  },
-  {
-    id: "dinheiro", title: "Sobre dinheiro", subtitle: "Isso muda TUDO na análise. Sem julgamento.",
-    fields: [
-      { name: "fatura", label: "Você já fatura com o Instagram?", type: "select", required: true,
-        options: ["Nunca vendi nada", "Já vendi mas não é constante", "Vendas toda semana", "É minha renda principal", "Só publi/parcerias"] },
-      { name: "quanto", label: "Quanto por mês? (aproximado)", type: "select", required: true,
-        options: ["R$0", "Menos de R$500", "R$500-2.000", "R$2.000-5.000", "R$5.000-15.000", "Mais de R$15.000", "Prefiro não dizer"] },
-      { name: "produto_tem", label: "Tem produto ou serviço?", type: "select", required: true,
-        options: ["Não tenho nada", "Tenho ideia mas não criei", "Tenho mas não vendo bem", "Tenho e vendo regular", "Vários produtos", "Vendo serviço/consultoria"] },
-      { name: "produto_desc", label: "Se tem, descreva rapidamente:", type: "textarea", placeholder: "Ex: Curso R$97, consultoria R$500/sessão...", required: false }
-    ]
-  },
-  {
-    id: "conteudo", title: "Seu conteúdo", subtitle: "Como você cria hoje",
-    fields: [
-      { name: "formatos", label: "Quais formatos você mais usa?", type: "multi", required: true,
-        options: ["Fotos com frase", "Carrosséis", "Reels falando", "Reels trending", "Reels tutorial", "Stories", "Lives"] },
-      { name: "proposito", label: "Quando posta, qual o objetivo?", type: "select", required: true,
-        options: ["Ensinar", "Motivar/inspirar", "Mostrar bastidores", "Vender", "Tudo misturado", "Depende do dia"] },
-      { name: "pedido", label: "Você pede algo no final do post?", type: "select", required: true,
-        options: ["Sempre", "Às vezes", "Raramente", "Nunca — não gosto", "Não sabia que tinha que pedir"] },
-      { name: "legendas", label: "Como são suas legendas?", type: "select", required: true,
-        options: ["Curtas (1-2 frases)", "Médias (1 parágrafo)", "Longas (conto história)", "Depende", "Quase não escrevo"] }
-    ]
-  },
-  {
-    id: "final", title: "Última etapa", subtitle: "Quase lá!",
-    fields: [
-      { name: "descobrir", label: "O que mais quer descobrir? (até 3)", type: "multi", required: true,
-        options: ["O que está errado", "Que conteúdo fazer", "Como vender mais", "Como ganhar seguidores", "Se a bio está boa", "Quais posts funcionam", "Formatos novos", "Plano de ação"] },
-      { name: "tom", label: "Você prefere que eu seja...", type: "select", required: true,
-        options: ["100% direto — quero a verdade", "Direto mas com carinho", "Mais motivacional — quero sair animado"] },
-      { name: "extra", label: "Mais alguma coisa que eu deveria saber?", type: "textarea", placeholder: "Pode ser qualquer coisa...", required: false }
-    ]
-  }
+const questions: QuestionDef[] = [
+  // 0 — Intro
+  { kind: 'intro' },
+
+  // 1 — Dados de contato (3 campos agrupados)
+  { kind: 'contact' },
+
+  // 2 — Nicho
+  { kind: 'text', name: 'nicho', label: 'Qual seu nicho?', placeholder: 'Ex: Nutrição, Marketing, Moda...', required: true },
+
+  // 3 — Print do perfil
+  { kind: 'upload', name: 'print_perfil', label: 'Print do seu PERFIL completo', required: true,
+    instruction: 'Abra seu perfil no Instagram e tire um print da tela inteira. Quero ver: foto, bio, seguidores e o grid.' },
+
+  // 4 — Print dos insights
+  { kind: 'upload', name: 'print_insights', label: 'Print dos INSIGHTS gerais', required: true,
+    instruction: 'Instagram → Painel profissional → Insights → Visão geral. Tire print dessa tela (alcance, engajamento, seguidores).' },
+
+  // 5 — Print melhor post
+  { kind: 'upload', name: 'print_melhor_post', label: 'Print do seu MELHOR POST recente', required: true,
+    instruction: 'Abra o post que foi melhor nos últimos 30 dias. Print mostrando o post + curtidas + comentários.' },
+
+  // 6 — Objetivo
+  { kind: 'select', name: 'objetivo', label: 'Qual seu objetivo PRINCIPAL?', required: true,
+    options: ['Ganhar seguidores', 'Vender produto/serviço', 'Construir autoridade', 'Conseguir clientes', 'Monetizar com publi', 'Criar comunidade', 'Divulgar negócio local', 'Ainda não sei'] },
+
+  // 7 — Maior dificuldade
+  { kind: 'select', name: 'dificuldade', label: 'Sua MAIOR dificuldade hoje?', required: true,
+    options: ['Não sei o que postar', 'Posto mas ninguém vê', 'Tenho views mas ninguém compra', 'Não mantenho constância', 'Não sei vender sem parecer chato', 'Cresci mas não gera dinheiro', 'Não sei usar Reels', 'Tudo acima'] },
+
+  // 8 — Fatura
+  { kind: 'select', name: 'fatura', label: 'Você já fatura com o Instagram?', required: true,
+    options: ['Nunca vendi nada', 'Já vendi mas não é constante', 'Vendas toda semana', 'É minha renda principal', 'Só publi/parcerias'] },
+
+  // 9 — O que quer descobrir
+  { kind: 'multi', name: 'descobrir', label: 'O que mais quer descobrir?', required: true, hint: 'Escolha até 3',
+    options: ['O que está errado', 'Que conteúdo fazer', 'Como vender mais', 'Como ganhar seguidores', 'Se a bio está boa', 'Quais posts funcionam', 'Formatos novos', 'Plano de ação'] },
+
+  // 10 — Tom da análise
+  { kind: 'select', name: 'tom', label: 'Você prefere que eu seja...', required: true,
+    options: ['100% direto — quero a verdade', 'Direto mas com carinho', 'Mais motivacional — quero sair animado'] },
+
+  // Submit
+  { kind: 'submit' },
 ]
+
+const TOTAL_QUESTIONS = 10 // questions excluding intro and submit
 
 // ═══════════════════════════════════════════════
 // Main Form
 // ═══════════════════════════════════════════════
 
 export default function DiagnosticoForm() {
-  const [step, setStep] = useState(0)
+  const [qi, setQi] = useState(0) // question index
   const [data, setData] = useState<Record<string, unknown>>({})
   const [done, setDone] = useState(false)
   const [sending, setSending] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
+  const [direction, setDirection] = useState(1)
 
   const set = useCallback((k: string, v: unknown) => setData(p => ({ ...p, [k]: v })), [])
   const toggle = useCallback((k: string, v: string) => {
@@ -283,23 +240,86 @@ export default function DiagnosticoForm() {
     })
   }, [])
 
-  const ok = () => {
-    const s = steps[step]
-    if (!s.fields.length) return true
-    return s.fields.filter(f => f.required).every(f => {
-      const v = data[f.name]
-      if (f.type === 'multi') return Array.isArray(v) && v.length > 0
-      if (f.type === 'upload') return !!v
-      return v && String(v).trim()
-    })
+  const q = questions[qi]
+
+  // Count answered questions for progress
+  const answeredCount = (() => {
+    let count = 0
+    for (const question of questions) {
+      if (question.kind === 'intro' || question.kind === 'submit') continue
+      if (question.kind === 'contact') {
+        if (data.instagram && data.nome && data.email) count++
+        continue
+      }
+      const name = question.name
+      const v = data[name]
+      if (question.kind === 'multi') { if (Array.isArray(v) && v.length > 0) count++ }
+      else if (question.kind === 'upload') { if (v) count++ }
+      else if (question.kind === 'multiupload') { if (v) count++ }
+      else { if (v && String(v).trim()) count++ }
+    }
+    return count
+  })()
+  const pct = (answeredCount / TOTAL_QUESTIONS) * 100
+
+  // Validate current question
+  const canAdvance = () => {
+    if (q.kind === 'intro') return true
+    if (q.kind === 'submit') return false
+    if (q.kind === 'contact') {
+      return !!(data.instagram && String(data.instagram).trim() && data.nome && String(data.nome).trim() && data.email && String(data.email).trim())
+    }
+    if (q.kind === 'multiupload') return true // optional
+    if (!q.required) return true
+    const v = data[q.name]
+    if (q.kind === 'multi') return Array.isArray(v) && v.length > 0
+    if (q.kind === 'upload') return !!v
+    return v && String(v).trim() !== ''
   }
 
+  const goNext = useCallback(() => {
+    if (qi < questions.length - 1) {
+      setDirection(1)
+      setQi(i => i + 1)
+    }
+  }, [qi])
+
+  const goBack = () => {
+    if (qi > 0) {
+      setDirection(-1)
+      setQi(i => i - 1)
+    }
+  }
+
+  // Auto-advance on single select
+  const handleSelect = useCallback((name: string, value: string) => {
+    set(name, value)
+    setTimeout(() => {
+      setDirection(1)
+      setQi(i => Math.min(i + 1, questions.length - 1))
+    }, 350)
+  }, [set])
+
+  // Keyboard: Enter to advance
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey && canAdvance()) {
+        if (q.kind === 'intro' || q.kind === 'contact' || (q.kind === 'text') || q.kind === 'multiupload') {
+          e.preventDefault()
+          goNext()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [qi, data, goNext]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Submit
   const submit = async () => {
     setSending(true)
     const submissionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     const imageUrls: Record<string, string | string[]> = {}
 
-    // Step 1: Upload all images to Supabase Storage
     const imageFields = Object.entries(data).filter(
       ([, v]) => (v && typeof v === 'object' && 'base64' in (v as Record<string, unknown>)) ||
                   (Array.isArray(v) && v.length > 0 && v[0]?.base64)
@@ -307,11 +327,9 @@ export default function DiagnosticoForm() {
 
     if (imageFields.length > 0) {
       setUploadProgress('Enviando prints...')
-      
       for (const [fieldName, value] of imageFields) {
         try {
           if (Array.isArray(value)) {
-            // MultiUpload: upload each file
             const urls: string[] = []
             for (let i = 0; i < value.length; i++) {
               const item = value[i] as MultiUploadItem
@@ -326,7 +344,6 @@ export default function DiagnosticoForm() {
             }
             imageUrls[fieldName] = urls
           } else {
-            // Single upload
             const upload = value as UploadValue
             const blob = await fetch(upload.base64).then(r => r.blob())
             const formData = new FormData()
@@ -343,27 +360,25 @@ export default function DiagnosticoForm() {
       }
     }
 
-    // Step 2: Build clean payload with URLs instead of base64
     setUploadProgress('Finalizando...')
     const clean: Record<string, unknown> = { submissionId, submitted_at: new Date().toISOString() }
     Object.entries(data).forEach(([k, v]) => {
       if (imageUrls[k]) {
         clean[k] = imageUrls[k]
       } else if (v && typeof v === 'object' && 'base64' in (v as Record<string, unknown>)) {
-        clean[k] = null // failed upload
+        clean[k] = null
       } else if (Array.isArray(v) && v[0]?.base64) {
-        clean[k] = null // failed upload
+        clean[k] = null
       } else {
         clean[k] = v
       }
     })
 
-    // Step 3: Send to n8n webhook
     try {
-      await fetch(WEBHOOK_URL, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(clean) 
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clean)
       })
     } catch { console.log('webhook error') }
     setDone(true)
@@ -371,16 +386,36 @@ export default function DiagnosticoForm() {
     setUploadProgress('')
   }
 
-  const s = steps[step]
-  const pct = (step / (steps.length - 1)) * 100
+  const allRequiredFilled = () => {
+    for (const question of questions) {
+      if (question.kind === 'intro' || question.kind === 'submit' || question.kind === 'multiupload') continue
+      if (question.kind === 'contact') {
+        if (!(data.instagram && data.nome && data.email)) return false
+        continue
+      }
+      if (!question.required) continue
+      const v = data[question.name]
+      if (question.kind === 'multi') { if (!Array.isArray(v) || v.length === 0) return false }
+      else if (question.kind === 'upload') { if (!v) return false }
+      else { if (!v || !String(v).trim()) return false }
+    }
+    return true
+  }
+
+  // Animation
+  const slideVariants = {
+    enter: (dir: number) => ({ opacity: 0, y: dir > 0 ? 40 : -40 }),
+    center: { opacity: 1, y: 0 },
+    exit: (dir: number) => ({ opacity: 0, y: dir > 0 ? -40 : 40 }),
+  }
 
   // ═══════════════════════════════════════════════
   // Success Screen
   // ═══════════════════════════════════════════════
   if (done) return (
     <div className="min-h-screen p-6 flex items-center justify-center">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }} 
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-lg mx-auto text-center"
       >
@@ -391,7 +426,6 @@ export default function DiagnosticoForm() {
         <p className="text-slate-400 text-lg mb-10 leading-relaxed">
           Vou analisar seu perfil com atenção.<br/>O estudo chega no seu email em até <strong className="text-white">48h</strong>.
         </p>
-
         <div className="space-y-3 text-left mb-10">
           {[
             { text: 'Formulário recebido', done: true },
@@ -414,10 +448,9 @@ export default function DiagnosticoForm() {
             </div>
           ))}
         </div>
-
-        <a 
-          href="https://instagram.com/omatheus.ai" 
-          target="_blank" 
+        <a
+          href="https://instagram.com/omatheus.ai"
+          target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full text-white font-bold text-sm tracking-tight shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
           style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}
@@ -429,229 +462,344 @@ export default function DiagnosticoForm() {
   )
 
   // ═══════════════════════════════════════════════
-  // Form
+  // Render current question
   // ═══════════════════════════════════════════════
-  return (
-    <div className="min-h-screen">
-      <div className="max-w-lg mx-auto px-5 py-8">
+  const questionNumber = qi // intro = 0, first question = 1, etc.
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]">
-              {step === 0 ? '' : `Etapa ${step} de ${steps.length - 1}`}
-            </span>
-            {step > 0 && (
-              <span className="text-[10px] font-bold text-slate-600">{Math.round(pct)}%</span>
-            )}
+  const renderQuestion = () => {
+    switch (q.kind) {
+      case 'intro':
+        return (
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Estudo Completo do Teu Perfil</h1>
+            <p className="text-slate-500 text-sm mb-8">Preenche com calma. Quanto mais honesto, melhor o resultado.</p>
+            <div className="space-y-4">
+              <div className="glass-card rounded-2xl p-6">
+                <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                  São só <strong className="text-white">10 perguntas</strong> — leva uns 3 minutos.
+                </p>
+                <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                  Vou te pedir <strong className="text-white">3 prints do Instagram</strong> — eles me dão dados reais que não consigo ver por fora.
+                </p>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Quanto mais honesto você for, melhor o estudo.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: 'lock', text: 'Confidencial' },
+                  { icon: 'timer', text: '3 minutos' },
+                  { icon: 'photo_camera', text: '3 prints' },
+                  { icon: 'analytics', text: 'Entrega em 48h' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl glass-card">
+                    <span className="material-symbols-outlined text-[#0ea5e9] text-xl">{item.icon}</span>
+                    <span className="text-sm text-slate-300 font-medium">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
-            <motion.div 
-              className="h-full rounded-full bg-gradient-to-r from-sky-400 to-[#0ea5e9]" 
-              initial={{ width: 0 }}
+        )
+
+      case 'contact':
+        return (
+          <div>
+            <div className="mb-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+                Pergunta 1 de {TOTAL_QUESTIONS}
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white mb-6">Seus dados</h2>
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-white mb-2">
+                  Seu @ no Instagram <span className="text-[#0ea5e9]">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={(data.instagram as string) || ''}
+                  onChange={e => set('instagram', e.target.value)}
+                  placeholder="@seuperfil"
+                  autoFocus
+                  className="w-full px-5 py-3.5 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-white mb-2">
+                  Como quer ser chamado? <span className="text-[#0ea5e9]">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={(data.nome as string) || ''}
+                  onChange={e => set('nome', e.target.value)}
+                  placeholder="Ex: João"
+                  className="w-full px-5 py-3.5 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-white mb-2">
+                  Email para receber o estudo <span className="text-[#0ea5e9]">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={(data.email as string) || ''}
+                  onChange={e => set('email', e.target.value)}
+                  placeholder="seuemail@email.com"
+                  className="w-full px-5 py-3.5 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all"
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-600 mt-4">Pressione <span className="text-slate-500 font-bold">Enter ↵</span> para continuar</p>
+          </div>
+        )
+
+      case 'text':
+        return (
+          <div>
+            <div className="mb-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+                Pergunta {questionNumber} de {TOTAL_QUESTIONS}
+              </span>
+            </div>
+            <label className="block text-xl sm:text-2xl font-bold text-white mb-5">
+              {q.label} {q.required && <span className="text-[#0ea5e9]">*</span>}
+            </label>
+            <input
+              type="text"
+              value={(data[q.name] as string) || ''}
+              onChange={e => set(q.name, e.target.value)}
+              placeholder={q.placeholder}
+              autoFocus
+              className="w-full px-5 py-4 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-base focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all"
+            />
+            <p className="text-[11px] text-slate-600 mt-3">Pressione <span className="text-slate-500 font-bold">Enter ↵</span> para continuar</p>
+          </div>
+        )
+
+      case 'upload':
+        return (
+          <div>
+            <div className="mb-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+                Pergunta {questionNumber} de {TOTAL_QUESTIONS}
+              </span>
+            </div>
+            <FileUpload
+              name={q.name} label={q.label} instruction={q.instruction}
+              required={q.required} value={data[q.name] as UploadValue | null} onChange={set}
+            />
+          </div>
+        )
+
+      case 'multiupload':
+        return (
+          <div>
+            <div className="mb-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+                Opcional
+              </span>
+            </div>
+            <MultiUpload
+              name={q.name} label={q.label} instruction={q.instruction}
+              onChange={set as (name: string, value: MultiUploadItem[]) => void}
+            />
+          </div>
+        )
+
+      case 'select':
+        return (
+          <div>
+            <div className="mb-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+                Pergunta {questionNumber} de {TOTAL_QUESTIONS}
+              </span>
+            </div>
+            <label className="block text-xl sm:text-2xl font-bold text-white mb-5">
+              {q.label} {q.required && <span className="text-[#0ea5e9]">*</span>}
+            </label>
+            <div className="space-y-2.5">
+              {q.options.map((o, idx) => (
+                <button
+                  key={o}
+                  onClick={() => handleSelect(q.name, o)}
+                  className={`w-full text-left px-5 py-3.5 rounded-xl border text-sm transition-all font-medium flex items-center gap-3 ${
+                    data[q.name] === o
+                      ? 'bg-[#0ea5e9]/15 border-[#0ea5e9]/40 text-[#0ea5e9]'
+                      : 'bg-white/[0.02] border-white/6 text-slate-400 hover:bg-white/[0.04] hover:border-white/10'
+                  }`}
+                >
+                  <span className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 text-xs font-black transition-all ${
+                    data[q.name] === o ? 'border-[#0ea5e9] bg-[#0ea5e9] text-white' : 'border-white/15 text-slate-600'
+                  }`}>
+                    {data[q.name] === o ? (
+                      <span className="material-symbols-outlined text-sm">check</span>
+                    ) : String.fromCharCode(65 + idx)}
+                  </span>
+                  {o}
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+
+      case 'multi':
+        return (
+          <div>
+            <div className="mb-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/60">
+                Pergunta {questionNumber} de {TOTAL_QUESTIONS}
+              </span>
+            </div>
+            <label className="block text-xl sm:text-2xl font-bold text-white mb-5">
+              {q.label} {q.required && <span className="text-[#0ea5e9]">*</span>}
+            </label>
+            <div className="space-y-2.5">
+              {q.options.map(o => {
+                const sel = ((data[q.name] as string[]) || []).includes(o)
+                return (
+                  <button
+                    key={o}
+                    onClick={() => toggle(q.name, o)}
+                    className={`w-full text-left px-5 py-3.5 rounded-xl border text-sm transition-all flex items-center gap-3 font-medium ${
+                      sel
+                        ? 'bg-[#0ea5e9]/15 border-[#0ea5e9]/40 text-[#0ea5e9]'
+                        : 'bg-white/[0.02] border-white/6 text-slate-400 hover:bg-white/[0.04] hover:border-white/10'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border-2 transition-all ${
+                      sel ? 'bg-[#0ea5e9] border-[#0ea5e9]' : 'border-white/20'
+                    }`}>
+                      {sel && <span className="material-symbols-outlined text-white text-sm">check</span>}
+                    </div>
+                    {o}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="text-[10px] text-slate-600 mt-3 font-medium">{q.hint || 'Pode escolher mais de um'}</p>
+          </div>
+        )
+
+      case 'submit':
+        return (
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6">
+              <span className="material-symbols-outlined text-4xl text-emerald-400">rocket_launch</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Tudo pronto!</h1>
+            <p className="text-slate-500 text-sm mb-8">Revise se quiser, ou envia direto.</p>
+            <div className="w-full glass-card rounded-2xl p-5 mb-6 text-left">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="material-symbols-outlined text-[#0ea5e9] text-lg">summarize</span>
+                <span className="text-sm font-bold text-white">Resumo</span>
+              </div>
+              <div className="space-y-1.5 text-xs text-slate-400">
+                {data.nome && <p>👤 <span className="text-slate-300">{data.nome as string}</span></p>}
+                {data.instagram && <p>📱 <span className="text-slate-300">{data.instagram as string}</span></p>}
+                {data.nicho && <p>🎯 <span className="text-slate-300">{data.nicho as string}</span></p>}
+                {data.objetivo && <p>🚀 <span className="text-slate-300">{data.objetivo as string}</span></p>}
+                <p>📸 <span className="text-slate-300">
+                  {Object.entries(data).filter(([, v]) => v && typeof v === 'object' && 'base64' in (v as Record<string, unknown>)).length} prints enviados
+                </span></p>
+              </div>
+            </div>
+          </div>
+        )
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Fixed top: progress */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-lg mx-auto px-5 py-3">
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/70">
+              {q.kind === 'intro' ? 'Início' : `${Math.round(pct)}% completo`}
+            </span>
+            <span className="text-[10px] font-bold text-slate-600">
+              {answeredCount}/{TOTAL_QUESTIONS}
+            </span>
+          </div>
+          <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-sky-400 to-[#0ea5e9]"
               animate={{ width: `${pct}%` }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             />
           </div>
         </div>
+      </div>
 
-        {/* Step Title */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-1">{s.title}</h1>
-            <p className="text-slate-500 text-sm mb-8">{s.subtitle}</p>
+      {/* Content */}
+      <div className="flex-1 flex items-center justify-center px-5 pt-20 pb-28">
+        <div className="max-w-lg w-full">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={qi}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {renderQuestion()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
 
-            {/* Intro Step */}
-            {s.id === 'intro' && (
-              <div className="space-y-4">
-                <div className="glass-card rounded-2xl p-6">
-                  <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                    Esse formulário tem <strong className="text-white">6 etapas rápidas</strong> — leva uns 5 minutos.
-                  </p>
-                  <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                    Vou te pedir uns <strong className="text-white">prints do Instagram</strong> — eles me dão dados reais que não consigo ver por fora (salvamentos, alcance, quem te segue).
-                  </p>
-                  <p className="text-slate-400 text-sm leading-relaxed">
-                    Quanto mais honesto você for, melhor o estudo.
-                  </p>
-                </div>
+      {/* Fixed bottom: navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-t border-white/5">
+        <div className="max-w-lg mx-auto px-5 py-4 flex gap-3">
+          {qi > 0 && (
+            <button
+              onClick={goBack}
+              className="px-5 py-3 rounded-full border border-white/10 text-slate-400 text-sm font-bold hover:bg-white/5 transition-all flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-lg">arrow_back</span>
+            </button>
+          )}
 
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { icon: 'lock', text: 'Confidencial' },
-                    { icon: 'timer', text: '5 minutos' },
-                    { icon: 'photo_camera', text: 'Vou pedir prints' },
-                    { icon: 'analytics', text: 'Entrega em 48h' },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl glass-card">
-                      <span className="material-symbols-outlined text-[#0ea5e9] text-xl">{item.icon}</span>
-                      <span className="text-sm text-slate-300 font-medium">{item.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Fields */}
-            <div className="space-y-6">
-              {s.fields.map(f => (
-                <div key={f.name}>
-                  {f.type === 'upload' && (
-                    <FileUpload 
-                      name={f.name} label={f.label} instruction={f.instruction} 
-                      required={f.required} value={data[f.name] as UploadValue | null} onChange={set} 
-                    />
-                  )}
-                  {f.type === 'multiupload' && (
-                    <MultiUpload 
-                      name={f.name} label={f.label} instruction={f.instruction} 
-                      onChange={set as (name: string, value: MultiUploadItem[]) => void} 
-                    />
-                  )}
-                  {f.type === 'text' && (
-                    <div>
-                      <label className="block text-sm font-bold text-white mb-2">
-                        {f.label} {f.required && <span className="text-[#0ea5e9]">*</span>}
-                      </label>
-                      <input 
-                        type="text" 
-                        value={(data[f.name] as string) || ''} 
-                        onChange={e => set(f.name, e.target.value)} 
-                        placeholder={f.placeholder}
-                        className="w-full px-4 py-3.5 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all" 
-                      />
-                    </div>
-                  )}
-                  {f.type === 'textarea' && (
-                    <div>
-                      <label className="block text-sm font-bold text-white mb-2">
-                        {f.label} {f.required && <span className="text-[#0ea5e9]">*</span>}
-                      </label>
-                      <textarea 
-                        value={(data[f.name] as string) || ''} 
-                        onChange={e => set(f.name, e.target.value)} 
-                        placeholder={f.placeholder} 
-                        rows={3}
-                        className="w-full px-4 py-3.5 rounded-xl bg-white/[0.04] border border-white/8 text-white placeholder-slate-600 text-sm resize-none focus:outline-none focus:border-[#0ea5e9]/50 focus:bg-white/[0.06] transition-all" 
-                      />
-                    </div>
-                  )}
-                  {f.type === 'select' && (
-                    <div>
-                      <label className="block text-sm font-bold text-white mb-3">
-                        {f.label} {f.required && <span className="text-[#0ea5e9]">*</span>}
-                      </label>
-                      <div className="space-y-2">
-                        {f.options?.map(o => (
-                          <button 
-                            key={o} 
-                            onClick={() => set(f.name, o)}
-                            className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all font-medium ${
-                              data[f.name] === o 
-                                ? 'bg-[#0ea5e9]/15 border-[#0ea5e9]/40 text-[#0ea5e9]' 
-                                : 'bg-white/[0.02] border-white/6 text-slate-400 hover:bg-white/[0.04] hover:border-white/10'
-                            }`}
-                          >
-                            {data[f.name] === o && (
-                              <span className="material-symbols-outlined text-sm mr-2 align-middle">check_circle</span>
-                            )}
-                            {o}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {f.type === 'multi' && (
-                    <div>
-                      <label className="block text-sm font-bold text-white mb-3">
-                        {f.label} {f.required && <span className="text-[#0ea5e9]">*</span>}
-                      </label>
-                      <div className="space-y-2">
-                        {f.options?.map(o => {
-                          const sel = ((data[f.name] as string[]) || []).includes(o)
-                          return (
-                            <button 
-                              key={o} 
-                              onClick={() => toggle(f.name, o)}
-                              className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all flex items-center gap-3 font-medium ${
-                                sel 
-                                  ? 'bg-[#0ea5e9]/15 border-[#0ea5e9]/40 text-[#0ea5e9]' 
-                                  : 'bg-white/[0.02] border-white/6 text-slate-400 hover:bg-white/[0.04] hover:border-white/10'
-                              }`}
-                            >
-                              <div className={`w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border-2 transition-all ${
-                                sel ? 'bg-[#0ea5e9] border-[#0ea5e9]' : 'border-white/20'
-                              }`}>
-                                {sel && <span className="material-symbols-outlined text-white text-sm">check</span>}
-                              </div>
-                              {o}
-                            </button>
-                          )
-                        })}
-                      </div>
-                      <p className="text-[10px] text-slate-600 mt-2 font-medium">Pode escolher mais de um</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex gap-3 mt-10 pb-12">
-              {step > 0 && (
-                <button 
-                  onClick={() => setStep(p => p - 1)}
-                  className="px-6 py-3.5 rounded-full border border-white/10 text-slate-400 text-sm font-bold hover:bg-white/5 transition-all"
-                >
-                  <span className="material-symbols-outlined text-lg align-middle mr-1">arrow_back</span>
-                  Voltar
-                </button>
-              )}
-              {step < steps.length - 1 ? (
-                <button 
-                  onClick={() => setStep(p => p + 1)} 
-                  disabled={!ok()}
-                  className={`flex-1 px-6 py-3.5 rounded-full text-sm font-bold transition-all ${
-                    ok() 
-                      ? 'shimmer-btn text-white shadow-lg shadow-[#0ea5e9]/20 hover:shadow-[#0ea5e9]/40' 
-                      : 'bg-white/5 text-slate-700 cursor-not-allowed'
-                  }`}
-                >
-                  {step === 0 ? 'Começar' : 'Próxima'}
-                  <span className="material-symbols-outlined text-lg align-middle ml-1">arrow_forward</span>
-                </button>
+          {q.kind === 'submit' ? (
+            <button
+              onClick={submit}
+              disabled={!allRequiredFilled() || sending}
+              className={`flex-1 px-6 py-3.5 rounded-full text-sm font-bold transition-all ${
+                allRequiredFilled() && !sending
+                  ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40'
+                  : 'bg-white/5 text-slate-700 cursor-not-allowed'
+              }`}
+            >
+              {sending ? (
+                <>
+                  <span className="material-symbols-outlined text-lg align-middle mr-1 animate-spin">progress_activity</span>
+                  {uploadProgress || 'Enviando...'}
+                </>
               ) : (
-                <button 
-                  onClick={submit} 
-                  disabled={!ok() || sending}
-                  className={`flex-1 px-6 py-3.5 rounded-full text-sm font-bold transition-all ${
-                    ok() && !sending 
-                      ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40' 
-                      : 'bg-white/5 text-slate-700 cursor-not-allowed'
-                  }`}
-                >
-                  {sending ? (
-                    <>
-                      <span className="material-symbols-outlined text-lg align-middle mr-1 animate-spin">progress_activity</span>
-                      {uploadProgress || 'Enviando...'}
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-lg align-middle mr-1">send</span>
-                      Enviar formulário
-                    </>
-                  )}
-                </button>
+                <>
+                  <span className="material-symbols-outlined text-lg align-middle mr-1">send</span>
+                  Enviar formulário
+                </>
               )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+            </button>
+          ) : (
+            <button
+              onClick={goNext}
+              disabled={!canAdvance()}
+              className={`flex-1 px-6 py-3.5 rounded-full text-sm font-bold transition-all ${
+                canAdvance()
+                  ? 'shimmer-btn text-white shadow-lg shadow-[#0ea5e9]/20 hover:shadow-[#0ea5e9]/40'
+                  : 'bg-white/5 text-slate-700 cursor-not-allowed'
+              }`}
+            >
+              {q.kind === 'intro' ? 'Começar' : 'Próxima'}
+              <span className="material-symbols-outlined text-lg align-middle ml-1">arrow_forward</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
