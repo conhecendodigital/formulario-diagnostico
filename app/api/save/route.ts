@@ -39,6 +39,9 @@ export async function POST(request: NextRequest) {
         print_perfil: sanitize(body.print_perfil, 1000),
         print_insights: sanitize(body.print_insights, 1000),
         print_melhor_post: sanitize(body.print_melhor_post, 1000),
+        prints_insights_detalhados: Array.isArray(body.prints_insights_detalhados)
+          ? body.prints_insights_detalhados.map((s: unknown) => sanitize(s, 1000)).filter(Boolean)
+          : [],
         submitted_at: body.submitted_at || new Date().toISOString(),
       }, { onConflict: 'submission_id' })
 
