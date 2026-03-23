@@ -236,23 +236,40 @@ const questions: QuestionDef[] = [
       </div>
     ) },
 
-  // 6 — Objetivo
+  // 6 — Prints detalhados dos insights (até 5 imagens)
+  { kind: 'multiupload', name: 'prints_insights_detalhados', label: 'Prints detalhados dos INSIGHTS',
+    instruction: (
+      <div className="space-y-2">
+        <p className="font-bold text-white mb-1">Envie até 5 prints importantes dos seus Insights:</p>
+        <ol className="list-decimal list-inside space-y-1 text-slate-400">
+          <li>No perfil, toque em <strong>Painel Profissional</strong></li>
+          <li>Explore as abas: <strong>Alcance</strong>, <strong>Engajamento</strong>, <strong>Seguidores</strong></li>
+          <li>Tire prints das telas que mostram dados dos últimos 30 dias</li>
+          <li>Inclua prints de <strong>Contas alcançadas</strong>, <strong>Contas com engajamento</strong>, <strong>Total de seguidores</strong> e <strong>Conteúdo compartilhado</strong></li>
+        </ol>
+        <p className="text-xs text-[#0ea5e9] mt-2 font-medium bg-[#0ea5e9]/10 p-2 rounded inline-block">
+          Dica: Quanto mais prints dos insights, mais completa será sua análise!
+        </p>
+      </div>
+    ) },
+
+  // 7 — Objetivo
   { kind: 'select', name: 'objetivo', label: 'Qual seu objetivo PRINCIPAL?', required: true,
     options: ['Ganhar seguidores', 'Vender produto/serviço', 'Construir autoridade', 'Conseguir clientes', 'Monetizar com publi', 'Criar comunidade', 'Divulgar negócio local', 'Ainda não sei'] },
 
-  // 7 — Maior dificuldade
+  // 8 — Maior dificuldade
   { kind: 'select', name: 'dificuldade', label: 'Sua MAIOR dificuldade hoje?', required: true,
     options: ['Não sei o que postar', 'Posto mas ninguém vê', 'Tenho views mas ninguém compra', 'Não mantenho constância', 'Não sei vender sem parecer chato', 'Cresci mas não gera dinheiro', 'Não sei usar Reels', 'Tudo acima'] },
 
-  // 8 — Fatura
+  // 9 — Fatura
   { kind: 'select', name: 'fatura', label: 'Você já fatura com o Instagram?', required: true,
     options: ['Nunca vendi nada', 'Já vendi mas não é constante', 'Vendas toda semana', 'É minha renda principal', 'Só publi/parcerias'] },
 
-  // 9 — O que quer descobrir
+  // 10 — O que quer descobrir
   { kind: 'multi', name: 'descobrir', label: 'O que mais quer descobrir?', required: true, hint: 'Escolha até 3',
     options: ['O que está errado', 'Que conteúdo fazer', 'Como vender mais', 'Como ganhar seguidores', 'Se a bio está boa', 'Quais posts funcionam', 'Formatos novos', 'Plano de ação'] },
 
-  // 10 — Tom da análise
+  // 11 — Tom da análise
   { kind: 'select', name: 'tom', label: 'Você prefere que eu seja...', required: true,
     options: ['100% direto — quero a verdade', 'Direto mas com carinho', 'Mais motivacional — quero sair animado'] },
 
@@ -260,7 +277,7 @@ const questions: QuestionDef[] = [
   { kind: 'submit' },
 ]
 
-const TOTAL_QUESTIONS = 10 // questions excluding intro and submit
+const TOTAL_QUESTIONS = 11 // questions excluding intro and submit
 
 // ═══════════════════════════════════════════════
 // Main Form
