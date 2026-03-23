@@ -712,8 +712,8 @@ export default function DiagnosticoForm() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Fixed top: progress */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-lg mx-auto px-5 py-3">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/5" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="max-w-lg mx-auto px-4 sm:px-5 py-2.5 sm:py-3">
           <div className="flex justify-between items-center mb-1.5">
             <span className="text-[10px] font-black uppercase tracking-widest text-[#0ea5e9]/70">
               {q.kind === 'intro' ? 'Início' : `${Math.round(pct)}% completo`}
@@ -733,8 +733,8 @@ export default function DiagnosticoForm() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center px-5 pt-20 pb-28">
-        <div className="max-w-lg w-full">
+      <div className="flex-1 flex items-start sm:items-center justify-center px-4 sm:px-5 pt-16 sm:pt-20 pb-24 sm:pb-28 overflow-y-auto">
+        <div className="max-w-lg w-full py-4 sm:py-0">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={qi}
@@ -752,8 +752,8 @@ export default function DiagnosticoForm() {
       </div>
 
       {/* Fixed bottom: navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-t border-white/5">
-        <div className="max-w-lg mx-auto px-5 py-4 flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-t border-white/5" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="max-w-lg mx-auto px-4 sm:px-5 py-3 sm:py-4 flex gap-3">
           {qi > 0 && (
             <button
               onClick={goBack}
