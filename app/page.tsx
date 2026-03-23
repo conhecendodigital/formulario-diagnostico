@@ -417,21 +417,25 @@ export default function DiagnosticoForm() {
     })
 
     try {
-      await fetch(WEBHOOK_URL, {
+      const webhookRes = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(clean)
       })
-    } catch { console.log('webhook error') }
+      if (!webhookRes.ok) console.error('Webhook failed:', webhookRes.status, await webhookRes.text().catch(() => ''))
+      else console.log('✅ Webhook enviado com sucesso')
+    } catch (err) { console.error('❌ Webhook error:', err) }
 
     // Salvar no Supabase como backup
     try {
-      await fetch('/api/save', {
+      const saveRes = await fetch('/api/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(clean)
       })
-    } catch { console.log('supabase save error') }
+      if (!saveRes.ok) console.error('Save failed:', saveRes.status, await saveRes.text().catch(() => ''))
+      else console.log('✅ Dados salvos no Supabase')
+    } catch (err) { console.error('❌ Save error:', err) }
     setDone(true)
     setSending(false)
     setUploadProgress('')
