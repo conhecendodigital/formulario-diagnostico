@@ -28,6 +28,7 @@ type QuestionDef =
   | { kind: 'multi'; name: string; label: string; options: string[]; required: boolean; hint?: string }
   | { kind: 'upload'; name: string; label: string; instruction: React.ReactNode; required: boolean }
   | { kind: 'multiupload'; name: string; label: string; instruction: React.ReactNode }
+  | { kind: 'textarea'; name: string; label: string; placeholder: string; required: boolean; hint?: string }
   | { kind: 'submit' }
 
 // ═══════════════════════════════════════════════
@@ -273,11 +274,16 @@ const questions: QuestionDef[] = [
   { kind: 'select', name: 'tom', label: 'Você prefere que eu seja...', required: true,
     options: ['100% direto — quero a verdade', 'Direto mas com carinho', 'Mais motivacional — quero sair animado'] },
 
+  // 12 — Desabafo / realidade
+  { kind: 'textarea', name: 'desabafo', label: 'Agora é sua vez: me conta sua realidade', required: false,
+    placeholder: 'Conte o que você quiser... sua frustração, o que já tentou, o que sente que falta, por que decidiu buscar ajuda agora. Quanto mais sincero, melhor será minha análise.',
+    hint: 'Opcional, mas quanto mais você contar, melhor será o estudo' },
+
   // Submit
   { kind: 'submit' },
 ]
 
-const TOTAL_QUESTIONS = 11 // questions excluding intro and submit
+const TOTAL_QUESTIONS = 12 // questions excluding intro and submit
 
 // ═══════════════════════════════════════════════
 // Main Form
@@ -717,6 +723,33 @@ export default function DiagnosticoForm() {
             <div className="mt-8 flex items-center gap-2 text-slate-500 bg-white/5 px-4 py-2.5 rounded-lg w-fit">
               <span className="material-symbols-outlined text-lg">keyboard_return</span>
               <p className="text-xs font-medium">Pressione <strong className="text-white">Enter</strong> para avançar</p>
+            </div>
+          </div>
+        )
+
+      case 'textarea':
+        return (
+          <div>
+            <div className="mb-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#0ea5e9]/70 bg-[#0ea5e9]/10 px-2.5 py-1 rounded-full">
+                Pergunta {questionNumber} de {TOTAL_QUESTIONS}
+              </span>
+            </div>
+            <label className="block text-2xl sm:text-3xl font-black text-white mb-3 tracking-tight">
+              {q.label}
+            </label>
+            {q.hint && (
+              <p className="text-sm text-slate-400 mb-6 italic">{q.hint}</p>
+            )}
+            <div className="group">
+              <textarea
+                value={(data[q.name] as string) || ''}
+                onChange={e => set(q.name, e.target.value)}
+                placeholder={q.placeholder}
+                autoFocus
+                rows={5}
+                className="w-full px-5 py-4.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-slate-600 text-[15px] leading-relaxed focus:outline-none focus:border-[#0ea5e9] focus:bg-[#0ea5e9]/5 transition-all focus:ring-4 ring-[#0ea5e9]/10 shadow-inner shadow-black/20 resize-none"
+              />
             </div>
           </div>
         )
