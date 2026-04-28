@@ -145,7 +145,7 @@ export default function MentoriaForm() {
 
     // Envia para o Supabase
     try {
-      await fetch("/api/lead", {
+      await fetch("/mentoria/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(lead),

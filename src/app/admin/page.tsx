@@ -104,7 +104,7 @@ export default function AdminPage() {
             <button onClick={fetchLeads} className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all">
               Atualizar
             </button>
-            <a href="/" className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all">
+            <a href="/mentoria/" className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all">
               Formulario
             </a>
           </div>
