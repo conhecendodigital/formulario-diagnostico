@@ -87,6 +87,28 @@ export default function MentoriaForm() {
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const savedAnswers = localStorage.getItem("mentoria_form_answers");
+      if (savedAnswers) {
+        setAnswers(JSON.parse(savedAnswers));
+      }
+      const savedStep = localStorage.getItem("mentoria_form_step");
+      if (savedStep && parseInt(savedStep, 10) >= 0 && parseInt(savedStep, 10) < TOTAL) {
+        setStep(parseInt(savedStep, 10));
+      }
+    } catch (err) {}
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded && step >= 0 && !done && step < TOTAL) {
+      localStorage.setItem("mentoria_form_step", step.toString());
+      localStorage.setItem("mentoria_form_answers", JSON.stringify(answers));
+    }
+  }, [step, answers, isLoaded, done]);
 
   const goTo = (n: number) => {
     setAnimating(true);
@@ -154,6 +176,10 @@ export default function MentoriaForm() {
 
     setDone(true);
     goTo(TOTAL);
+    try {
+      localStorage.removeItem("mentoria_form_step");
+      localStorage.removeItem("mentoria_form_answers");
+    } catch {}
   };
 
   const handleKey = (e: React.KeyboardEvent) => {
@@ -164,6 +190,14 @@ export default function MentoriaForm() {
   };
 
   const pct = step < 0 ? 0 : Math.min(((step + 1) / TOTAL) * 100, 100);
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-dvh flex items-center justify-center bg-[#0c1120]">
+        <div className="w-8 h-8 border-2 border-sky-500/30 border-t-sky-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   /* ── WELCOME ── */
   if (step === -1) {
