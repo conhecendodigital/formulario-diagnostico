@@ -208,7 +208,7 @@ export default function MentoriaForm() {
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center mb-6 shadow-lg shadow-sky-500/20">
               <svg width="28" height="28" fill="none" viewBox="0 0 48 48"><path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="white"/></svg>
             </div>
-            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-sky-400 mb-3">Mentoria de Crescimento</p>
+            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-sky-400 mb-3">Mentoria Avance</p>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight mb-4">
               Candidatura para<br />entrar na turma
             </h1>
